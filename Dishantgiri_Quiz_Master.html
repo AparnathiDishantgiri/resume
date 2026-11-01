@@ -1,0 +1,98 @@
+<!DOCTYPE html>
+<html lang="gu">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Dishantgiri Quiz Master</title>
+<style>
+:root{--bg:#0b1020;--panel:#151d33;--panel2:#1d2945;--text:#f5f7ff;--muted:#aebbd4;--blue:#6ea8ff;--green:#26c281;--red:#ff6577}
+*{box-sizing:border-box}body{margin:0;font-family:Arial,'Noto Sans Gujarati',sans-serif;background:radial-gradient(circle at top,#1c3260 0,#0b1020 55%);color:var(--text);min-height:100vh;padding:22px}
+.wrap{max-width:850px;margin:auto}.top{display:flex;justify-content:space-between;align-items:center;gap:12px;flex-wrap:wrap}
+.brand{font-size:clamp(23px,4vw,34px);font-weight:800}.brand span{color:#83b6ff}.credit{color:var(--muted);font-size:13px}
+.card{background:rgba(21,29,51,.96);border:1px solid #2b3b5f;border-radius:22px;padding:clamp(18px,4vw,32px);margin-top:22px;box-shadow:0 18px 55px #0005}
+.pill{display:inline-block;background:#24395f;color:#cfe1ff;border-radius:30px;padding:7px 12px;font-size:13px}
+.stats{display:flex;justify-content:space-between;gap:10px;color:var(--muted);font-size:14px;margin:18px 0 10px}
+.bar{height:9px;background:#293651;border-radius:10px;overflow:hidden}.fill{height:100%;width:0;background:linear-gradient(90deg,#4c8cff,#35d6b0);transition:.25s}
+h2{font-size:clamp(21px,3vw,28px);line-height:1.55;margin:22px 0}
+.answers{display:grid;grid-template-columns:1fr 1fr;gap:12px}
+.answer{background:var(--panel2);border:1px solid #344767;border-radius:14px;padding:15px;text-align:left;color:var(--text);font-size:17px;line-height:1.45;cursor:pointer;transition:.15s}
+.answer:hover{border-color:var(--blue);transform:translateY(-2px)}.answer:disabled{cursor:default;transform:none;opacity:1}
+.answer.correct{border:2px solid var(--green);background:#123c36}.answer.wrong{border:2px solid var(--red);background:#482632}
+.feedback{display:none;margin-top:18px;padding:15px;border-radius:14px;line-height:1.6;font-size:17px}.feedback.good{display:block;background:#123c36;border:1px solid var(--green)}.feedback.bad{display:block;background:#482632;border:1px solid var(--red)}
+.explain{color:#d7e0f1;font-size:15px;margin-top:7px}.actions{display:flex;gap:10px;flex-wrap:wrap;margin-top:20px}
+button.primary,button.secondary{border:0;border-radius:12px;padding:13px 20px;font-size:16px;font-weight:700;cursor:pointer}
+.primary{background:linear-gradient(90deg,#548cff,#7167f5);color:white}.secondary{background:#293651;color:#e7efff}
+button:disabled{opacity:.45;cursor:not-allowed}.hide{display:none}.result{text-align:center}.score{font-size:56px;font-weight:900;color:#8bb9ff;margin:12px}
+.small{color:var(--muted);font-size:13px;line-height:1.6;margin-top:18px}
+@media(max-width:600px){.answers{grid-template-columns:1fr}body{padding:14px}.stats{font-size:12px}}
+</style></head>
+<body><div class="wrap">
+<div class="top"><div><div class="brand">📚 <span>Dishantgiri</span> Quiz Master</div><div class="credit">Created by Dishantgiri Aparnathi</div></div><span class="pill">Gujarati Quiz • MCQ</span></div>
+<section class="card" id="quiz">
+<div class="stats"><span id="count">પ્રશ્ન 1</span><span id="scoreNow">સ્કોર: 0</span><span id="subject">Mixed Quiz</span></div>
+<div class="bar"><div class="fill" id="progress"></div></div>
+<h2 id="question">પ્રશ્ન અહીં દેખાશે</h2>
+<div class="answers" id="answers"></div>
+<div id="feedback" class="feedback"></div>
+<div class="actions"><button class="primary" id="next" disabled>આગળનો પ્રશ્ન →</button><button class="secondary" id="skip">છોડી દો</button></div>
+<div class="small">દરેક પ્રશ્નનો એક જ સાચો જવાબ છે. જવાબ પસંદ કર્યા પછી સાચો જવાબ અને સમજણ દેખાશે.</div>
+</section>
+<section class="card result hide" id="result">
+<div class="pill">QUIZ COMPLETED</div><h2>🎉 ક્વિઝ પૂર્ણ થઈ!</h2><div class="score" id="finalScore">0/0</div><h3 id="message"></h3><p id="summary" class="small"></p>
+<div class="actions" style="justify-content:center"><button class="primary" onclick="startQuiz()">ફરીથી રમો ↻</button><button class="secondary" onclick="reviewQuiz()">જવાબો જુઓ</button></div>
+</section>
+<section class="card hide" id="review"><h2>તમારા જવાબો</h2><div id="reviewList"></div><button class="primary" onclick="startQuiz()">ફરીથી ક્વિઝ રમો</button></section>
+</div>
+<script>
+const bank = [{"q": "4NH₃ + 5O₂ → 4NO + 6H₂O આ કઈ પ્રકારની પ્રક્રિયા છે?", "o": ["અવક્ષેપણ", "વિસ્થાપન", "સંયોજન", "ઓક્સિડેશન અને રિડક્શન બંને"], "a": 3, "why": "આ પ્રક્રિયામાં NH₃નું ઓક્સિડેશન અને O₂નું રિડક્શન થાય છે."}, {"q": "નીચેનામાંથી કઈ પ્રક્રિયા ઉષ્માક્ષેપક છે?", "o": ["કેલ્શિયમનું પાણી સાથેનું સંયોજન", "બરફનું પીગળવું", "પાણીનું બાષ્પીભવન", "ચૂનાના પથ્થરનું ઉષ્માથી વિઘટન"], "a": 0, "why": "કેલ્શિયમ પાણી સાથે પ્રતિક્રિયા કરતાં ઉષ્મા મુક્ત થાય છે."}, {"q": "રાસાયણિક પ્રક્રિયા દરમિયાન જે પદાર્થનું ઓક્સિડેશન થાય છે તેને શું કહે છે?", "o": ["અવક્ષેપ", "ઓક્સિડેશનકર્તા", "રિડક્શનકર્તા", "પ્રતિક્રિયક"], "a": 2, "why": "જે પદાર્થ પોતે ઓક્સિડાઇઝ થાય છે તે રિડક્શનકર્તા છે."}, {"q": "નીચેનામાંથી કઈ પ્રક્રિયા એક વિસ્થાપન પ્રક્રિયા નથી?", "o": ["Fe + CuSO₄ → FeSO₄ + Cu", "4NH₃ + 5O₂ → 4NO + 6H₂O", "Zn + 2HCl → ZnCl₂ + H₂", "CuO + H₂ → H₂O + Cu"], "a": 1, "why": "આ ઓક્સિડેશન-રિડક્શન પ્રક્રિયા છે, એકલ વિસ્થાપન નથી."}, {"q": "બેરિયમ ક્લોરાઇડ અને સોડિયમ સલ્ફેટની પ્રક્રિયામાં કયો સફેદ અવક્ષેપ બને છે?", "o": ["NaCl", "BaSO₄", "BaCl₂", "Na₂SO₄"], "a": 1, "why": "BaCl₂ + Na₂SO₄ → BaSO₄↓ + 2NaCl."}, {"q": "પાણીના વિદ્યુત વિભાજનથી હાઇડ્રોજન અને ઓક્સિજનનું પ્રમાણ કેટલું મળે છે?", "o": ["1:1", "2:1", "1:2", "4:1"], "a": 1, "why": "વોલ્યુમના પ્રમાણમાં હાઇડ્રોજન : ઓક્સિજન = 2 : 1."}, {"q": "સિલ્વર ક્લોરાઇડને સૂર્યપ્રકાશમાં રાખતાં તેનો રંગ કેવો થાય છે?", "o": ["સફેદ", "લીલો", "રાખોડી", "પીળો"], "a": 2, "why": "AgCl પ્રકાશમાં વિઘટીને ચાંદી બનાવે છે, તેથી રાખોડી રંગ દેખાય છે."}, {"q": "2KClO₃ → 2KCl + 3O₂ કઈ પ્રક્રિયા છે?", "o": ["સંયોજન", "વિઘટન", "વિસ્થાપન", "દ્વિવિસ્થાપન"], "a": 1, "why": "એક સંયોજન તૂટીને બે કે વધુ પદાર્થો બનાવે છે."}, {"q": "MgO + H₂O → Mg(OH)₂ કઈ પ્રક્રિયા છે?", "o": ["સંયોજન", "વિઘટન", "વિસ્થાપન", "દ્વિવિસ્થાપન"], "a": 0, "why": "બે પદાર્થ ભેગા થઈ એક ઉત્પાદન બનાવે છે."}, {"q": "4Al + 3O₂ → 2Al₂O₃ કઈ પ્રક્રિયા છે?", "o": ["સંયોજન", "વિઘટન", "વિસ્થાપન", "દ્વિવિસ્થાપન"], "a": 0, "why": "એલ્યુમિનિયમ અને ઓક્સિજન ભેગાં થઈ એક સંયોજન બનાવે છે."}, {"q": "Zn + FeSO₄ → ZnSO₄ + Fe કઈ પ્રક્રિયા છે?", "o": ["સંયોજન", "વિઘટન", "વિસ્થાપન", "દ્વિવિસ્થાપન"], "a": 2, "why": "વધુ સક્રિય Zn, Feને તેના ક્ષારમાંથી દૂર કરે છે."}, {"q": "શ્વસન પ્રક્રિયા કયા પ્રકારની રાસાયણિક પ્રક્રિયા છે?", "o": ["ઉષ્માશોષક", "ઉષ્માક્ષેપક", "વિઘટન માત્ર", "અવક્ષેપણ"], "a": 1, "why": "શ્વસનમાં ઊર્જા/ઉષ્મા મુક્ત થાય છે."}, {"q": "Ca(OH)₂ ને સામાન્ય રીતે કયા નામે ઓળખવામાં આવે છે?", "o": ["બ્લીચિંગ પાઉડર", "કોસ્ટિક સોડા", "ચૂનાનું નીતર્યું પાણી", "ચૂનાનું દૂધ"], "a": 3, "why": "Ca(OH)₂નું જલીય સસ્પેન્શન ચૂનાનું દૂધ કહેવાય છે."}, {"q": "આયર્નની કૉપર સલ્ફેટ સાથેની પ્રક્રિયામાં કયો ધાતુ છૂટો પડે છે?", "o": ["આયર્ન", "કૉપર", "ઝિંક", "સિલ્વર"], "a": 1, "why": "Fe + CuSO₄ → FeSO₄ + Cu."}, {"q": "ક્લોરિન વાયુનો રંગ કેવો હોય છે?", "o": ["પીળાશ પડતો લીલો", "વાદળી", "લાલ", "સફેદ"], "a": 0, "why": "ક્લોરિન પીળાશ પડતો લીલો વાયુ છે."}, {"q": "આયર્ન પર કાટ લાગવા માટે મુખ્યત્વે શું જરૂરી છે?", "o": ["માત્ર નાઇટ્રોજન", "ઓક્સિજન અને ભેજ", "માત્ર કાર્બન ડાયોક્સાઇડ", "માત્ર હાઇડ્રોજન"], "a": 1, "why": "કાટ લાગવા માટે ઓક્સિજન અને પાણી/ભેજ જરૂરી છે."}, {"q": "આયર્નની ખીલીને કૉપર સલ્ફેટના દ્રાવણમાં મૂકતાં દ્રાવણનો રંગ કયો થાય છે?", "o": ["વાદળીથી લીલો", "લીલાથી વાદળી", "લાલથી પીળો", "કોઈ ફેરફાર નહીં"], "a": 0, "why": "FeSO₄ બનતાં દ્રાવણ લીલાશ પડતું બને છે."}, {"q": "ચૂનાના પાણીમાં CO₂ પસાર કરતાં કયો પદાર્થ બને છે?", "o": ["CaO", "CaCO₃", "CaCl₂", "CaSO₄"], "a": 1, "why": "Ca(OH)₂ + CO₂ → CaCO₃ + H₂O."}, {"q": "શ્વેત-શ્યામ ફોટોગ્રાફીમાં કયા પદાર્થનો ઉપયોગ થાય છે?", "o": ["AgNO₃", "AgBr", "PbI₂", "NaCl"], "a": 1, "why": "સિલ્વર બ્રોમાઇડ પ્રકાશસંવેદી હોવાથી પરંપરાગત ફોટોગ્રાફીમાં વપરાય છે."}, {"q": "CaCO₃ ગરમ કરતાં CaO અને CO₂ બને છે. આ કઈ પ્રક્રિયા છે?", "o": ["વિઘટન", "સંયોજન", "વિસ્થાપન", "ઓક્સિડેશન"], "a": 0, "why": "ગરમીથી એક સંયોજન બે પદાર્થોમાં તૂટે છે."}, {"q": "BaCl₂ + Na₂SO₄ → BaSO₄ + 2NaCl કઈ પ્રક્રિયા છે?", "o": ["વિઘટન", "વિસ્થાપન", "દ્વિવિસ્થાપન", "સંયોજન"], "a": 2, "why": "બંને સંયોજનોના આયનોની આપ-લે થાય છે."}, {"q": "હાઇડ્રોજન વાયુ ઓક્સિજન સાથે સંયોજાઈ શું બનાવે છે?", "o": ["કાર્બન ડાયોક્સાઇડ", "પાણી", "હાઇડ્રોજન ક્લોરાઇડ", "ઓઝોન"], "a": 1, "why": "2H₂ + O₂ → 2H₂O."}, {"q": "લેડ નાઇટ્રેટ ગરમ કરતાં કયો ભૂરા રંગનો વાયુ નીકળે છે?", "o": ["O₂", "NO₂", "H₂", "N₂"], "a": 1, "why": "લેડ નાઇટ્રેટના ઉષ્મીય વિઘટનથી નાઇટ્રોજન ડાયોક્સાઇડનો ભૂરા રંગનો ધુમાડો મળે છે."}, {"q": "ઝિંક કાર્બોનેટ ગરમ કરતાં કયા પદાર્થો બને છે?", "o": ["ZnO + CO₂", "Zn + O₂", "ZnCl₂ + H₂", "ZnSO₄ + CO"], "a": 0, "why": "ZnCO₃ → ZnO + CO₂."}, {"q": "ઑક્સિડેશનમાં સામાન્ય રીતે શું થાય છે?", "o": ["ઓક્સિજનનો ઉમેરો અથવા હાઇડ્રોજનનો દૂર થવો", "ઓક્સિજનનો દૂર થવો", "માત્ર પાણી બનવું", "માત્ર અવક્ષેપ બનવો"], "a": 0, "why": "ઓક્સિજનનો ઉમેરો અથવા હાઇડ્રોજનનો દૂર થવો ઓક્સિડેશન છે."}, {"q": "રિડક્શનનો અર્થ શું થાય છે?", "o": ["ઓક્સિજનનો ઉમેરો", "હાઇડ્રોજનનો દૂર થવો", "ઓક્સિજનનો દૂર થવો અથવા હાઇડ્રોજનનો ઉમેરો", "ઉષ્મા મુક્ત થવી"], "a": 2, "why": "રિડક્શનમાં ઓક્સિજન દૂર થાય અથવા હાઇડ્રોજન ઉમેરાય છે."}, {"q": "લગ્નયાત્રા કયો સમાસ છે?", "o": ["દ્વંદ્વ", "મધ્યમપદલોપી", "બહુવ્રીહિ", "અવ્યયીભાવ"], "a": 1, "why": "તમારા પાઠ્યપુસ્તક મુજબ 'લગ્નયાત્રા' મધ્યમપદલોપી સમાસ છે."}, {"q": "'આનંદ' કઈ સંજ્ઞાનો પ્રકાર છે?", "o": ["વ્યક્તિવાચક", "જાતિવાચક", "ભાવવાચક", "દ્રવ્યવાચક"], "a": 2, "why": "આનંદ એક ભાવ/લાગણી દર્શાવે છે."}, {"q": "'દાળ' કઈ સંજ્ઞાનો પ્રકાર છે?", "o": ["વ્યક્તિવાચક", "જાતિવાચક", "દ્રવ્યવાચક", "ભાવવાચક"], "a": 2, "why": "દાળ પદાર્થનું નામ છે; તમારા પુસ્તક મુજબ દ્રવ્યવાચક."}, {"q": "'અર્ધતા' કયા પ્રકારની સંજ્ઞા છે?", "o": ["વ્યક્તિવાચક", "ભાવવાચક", "જાતિવાચક", "દ્રવ્યવાચક"], "a": 1, "why": "ગુણ/અવસ્થા દર્શાવતું નામ ભાવવાચક સંજ્ઞા છે."}, {"q": "Simple Present Tense નો ઉપયોગ મુખ્યત્વે ક્યારે થાય છે?", "o": ["ભૂતકાળની ઘટના", "હાલની આદત અને સામાન્ય સત્ય", "ભવિષ્યમાં પૂર્ણ થયેલી ઘટના", "હમણાં જ પૂરી થયેલી ઘટના"], "a": 1, "why": "આદતો, દૈનિક ક્રિયાઓ અને સામાન્ય સત્ય માટે વપરાય છે."}, {"q": "Present Perfect Tense નું યોગ્ય બંધારણ કયું છે?", "o": ["Subject + V2", "Subject + has/have + V3", "Subject + will + V1", "Subject + is/am/are + V-ing"], "a": 1, "why": "Present Perfect = has/have + past participle (V3)."}, {"q": "'I have finished my work.' કયો કાળ છે?", "o": ["Simple Past", "Present Perfect", "Present Continuous", "Past Perfect"], "a": 1, "why": "Have + V3 હોવાથી Present Perfect છે."}, {"q": "ગ્રીનહાઉસ અસરનો અર્થ શું છે?", "o": ["પૃથ્વીનું તાપમાન વધારતી પ્રક્રિયા", "વરસાદ બંધ થવો", "સમુદ્રનું પાણી મીઠું થવું", "પવનની દિશા બદલાવવી"], "a": 0, "why": "વાતાવરણના કેટલાક વાયુઓ ઉષ્મા અટકાવે છે, તેથી પૃથ્વી ગરમ થાય છે."}, {"q": "જળ પરિવહન એટલે શું?", "o": ["રસ્તા દ્વારા પરિવહન", "પાણીના માર્ગે પરિવહન", "હવાઈ માર્ગે પરિવહન", "રેલવે દ્વારા પરિવહન"], "a": 1, "why": "નદી, સમુદ્ર કે અન્ય જળમાર્ગે માલ/મુસાફરો લઈ જવું."}, {"q": "'શિથિલ' શબ્દનો અર્થ શું થાય છે?", "o": ["કડક", "ઢીલું અથવા નબળું", "ઝડપી", "ચમકદાર"], "a": 1, "why": "શિથિલનો અર્થ ઢીલું, નબળું અથવા ઢીલાશવાળું."}, {"q": "ગુજરાતી માધ્યમના ધોરણ 10માં 'સમાસ' કયા વિષયનો ભાગ છે?", "o": ["વ્યાકરણ", "ભૂગોળ", "રસાયણશાસ્ત્ર", "બીજગણિત"], "a": 0, "why": "સમાસ ગુજરાતી ભાષાના વ્યાકરણનો વિષય છે."}, {"q": "ધાતુઓની સક્રિયતા શ્રેણીમાં વધુ સક્રિય ધાતુ શું કરી શકે?", "o": ["ઓછી સક્રિય ધાતુને તેના ક્ષારમાંથી વિસ્થાપિત કરી શકે", "કોઈ પ્રતિક્રિયા ન કરે", "પાણી હંમેશાં બરફ બનાવે", "માત્ર વાયુમાં ફેરવાય"], "a": 0, "why": "વધુ સક્રિય ધાતુ ઓછી સક્રિય ધાતુને તેના ક્ષારમાંથી દૂર કરી શકે છે."}, {"q": "સંતુલિત રાસાયણિક સમીકરણમાં શું સમાન હોવું જોઈએ?", "o": ["બંને બાજુ દરેક તત્ત્વના પરમાણુઓની સંખ્યા", "માત્ર અણુઓનું કદ", "માત્ર રંગ", "માત્ર તાપમાન"], "a": 0, "why": "દ્રવ્ય સંરક્ષણના નિયમ મુજબ દરેક તત્ત્વના પરમાણુઓની સંખ્યા બંને બાજુ સમાન હોય છે."}, {"q": "2AgCl → 2Ag + Cl₂ કઈ પ્રક્રિયા છે?", "o": ["સંયોજન", "વિઘટન", "વિસ્થાપન", "દ્વિવિસ્થાપન"], "a": 1, "why": "સિલ્વર ક્લોરાઇડ તૂટી ચાંદી અને ક્લોરિન બનાવે છે."}, {"q": "Fe₂O₃ + 2Al → Al₂O₃ + 2Fe કઈ પ્રક્રિયા છે?", "o": ["થર્મિટ વિસ્થાપન પ્રક્રિયા", "સંયોજન", "દ્વિવિસ્થાપન", "ઉદાસીનીકરણ"], "a": 0, "why": "એલ્યુમિનિયમ આયર્ન ઑક્સાઇડમાંથી આયર્નને વિસ્થાપિત કરે છે."}, {"q": "પાણીના વિદ્યુત વિભાજનમાં કયા ઇલેક્ટ્રોડ પર હાઇડ્રોજન મળે છે?", "o": ["એનોડ", "કેથોડ", "બંને પર સમાન", "કોઈ પર નહીં"], "a": 1, "why": "કેથોડ પર રિડક્શનથી હાઇડ્રોજન વાયુ ઉત્પન્ન થાય છે."}, {"q": "'Dal' (દાળ) માટે પાઠ્યપુસ્તકમાં કયો સંજ્ઞા પ્રકાર જણાવાયો હતો?", "o": ["ભાવવાચક", "દ્રવ્યવાચક", "વ્યક્તિવાચક", "સર્વનામ"], "a": 1, "why": "આપણે ચર્ચેલા પાઠ્યપુસ્તક મુજબ દાળ દ્રવ્યવાચક સંજ્ઞા છે."}];
+let quiz=[],index=0,score=0,answered=false,history=[];
+const $=id=>document.getElementById(id);
+function shuffle(a){return [...a].sort(()=>Math.random()-.5)}
+function startQuiz(){
+ quiz=shuffle(bank);index=0;score=0;history=[];answered=false;
+ $('quiz').classList.remove('hide');$('result').classList.add('hide');$('review').classList.add('hide');
+ render();
+}
+function render(){
+ answered=false;const q=quiz[index];
+ $('count').textContent=`પ્રશ્ન ${index+1} / ${quiz.length}`;
+ $('scoreNow').textContent=`સ્કોર: ${score}`;
+ $('progress').style.width=`${index/quiz.length*100}%`;
+ $('question').textContent=q.q;$('feedback').className='feedback';$('feedback').innerHTML='';
+ $('next').disabled=true;$('next').textContent=index===quiz.length-1?'પરિણામ જુઓ ✓':'આગળનો પ્રશ્ન →';
+ $('answers').innerHTML='';
+ q.o.forEach((opt,i)=>{const b=document.createElement('button');b.className='answer';b.textContent=String.fromCharCode(65+i)+'. '+opt;b.onclick=()=>choose(i);$('answers').appendChild(b)});
+}
+function choose(n){
+ if(answered)return;answered=true;const q=quiz[index],buttons=[...$('answers').children],ok=n===q.a;
+ if(ok)score++;
+ buttons.forEach((b,i)=>{b.disabled=true;if(i===q.a)b.classList.add('correct');if(i===n&&!ok)b.classList.add('wrong')});
+ $('scoreNow').textContent=`સ્કોર: ${score}`;
+ $('feedback').className='feedback '+(ok?'good':'bad');
+ $('feedback').innerHTML=(ok?'<b>GOOD! ✓ સાચો જવાબ!</b>':'<b>SORRY, WRONG! ✗ ખોટો જવાબ.</b>')+
+ `<div>સાચો જવાબ: <b>${String.fromCharCode(65+q.a)}. ${q.o[q.a]}</b></div><div class="explain">${q.why||''}</div>`;
+ history.push({q:q.q,chosen:n,correct:q.a,opts:q.o,why:q.why});
+ $('next').disabled=false;
+}
+function advance(){
+ if(!answered)return;
+ if(index<quiz.length-1){index++;render()}else finish();
+}
+function skip(){
+ if(answered)return;
+ const q=quiz[index];history.push({q:q.q,chosen:-1,correct:q.a,opts:q.o,why:q.why});
+ index<quiz.length-1?(index++,render()):finish();
+}
+function finish(){
+ $('quiz').classList.add('hide');$('result').classList.remove('hide');$('review').classList.add('hide');
+ $('progress').style.width='100%';$('finalScore').textContent=`${score} / ${quiz.length}`;
+ const pct=Math.round(score/quiz.length*100);
+ $('message').textContent=pct>=80?'શાનદાર! ખૂબ સરસ પ્રદર્શન! 🌟':pct>=50?'સરસ પ્રયાસ! વધુ પ્રેક્ટિસ કરો. 👍':'ચિંતા નહીં! ફરી પ્રયાસ કરો. 💪';
+ $('summary').textContent=`તમારો સ્કોર ${pct}% છે. સાચા જવાબ: ${score}, ખોટા અથવા છોડેલા: ${quiz.length-score}.`;
+}
+function reviewQuiz(){
+ $('result').classList.add('hide');$('review').classList.remove('hide');
+ $('reviewList').innerHTML=history.map((h,i)=>`<div style="padding:12px 0;border-bottom:1px solid #344767"><b>${i+1}. ${h.q}</b><div style="color:${h.chosen===h.correct?'#55dfa9':'#ff8b99'}">તમારો જવાબ: ${h.chosen<0?'છોડ્યો':h.opts[h.chosen]}</div><div>સાચો જવાબ: <b>${h.opts[h.correct]}</b></div><div class="small">${h.why||''}</div></div>`).join('');
+}
+$('next').onclick=advance;$('skip').onclick=skip;startQuiz();
+</script></body></html>
